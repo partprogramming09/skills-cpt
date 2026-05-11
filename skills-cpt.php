@@ -16,6 +16,7 @@ if (!defined('ABSPATH')) {
  */
 const SKILLS_CPT_META_LEVEL = '_skill_level';
 const SKILLS_CPT_META_COLOR = '_skill_color';
+const SKILLS_CPT_META_YEAR = '_skill_year';
 
 /**
  * Registra el Custom Post Type de habilidades.
@@ -45,7 +46,7 @@ function skills_cpt_register_post_type()
         'show_in_graphql'     => true,
         'graphql_single_name' => 'Skill',
         'graphql_plural_name' => 'Skills',
-        'menu_icon'           => 'dashicons-star-filled',
+        'menu_icon'           => 'dashicons-awards',
         'supports'            => array('title', 'thumbnail', 'excerpt'),
         'rewrite'             => array('slug' => 'habilidades'),
         'menu_position'       => 25,
@@ -80,9 +81,11 @@ function skills_cpt_render_meta_box($post)
     
     $level = get_post_meta($post->ID, SKILLS_CPT_META_LEVEL, true);
     $color = get_post_meta($post->ID, SKILLS_CPT_META_COLOR, true);
+    $year = get_post_meta($post->ID, SKILLS_CPT_META_YEAR, true);
 
     if ($level === '') $level = 100;
     if ($color === '') $color = '#2563eb';
+    if ($year === '') $year = 0;
     ?>
     <p>
         <label for="skills_cpt_level"><strong>Nivel de dominio (0-100)</strong></label>
@@ -103,6 +106,18 @@ function skills_cpt_render_meta_box($post)
             id="skills_cpt_color"
             name="skills_cpt_color"
             value="<?php echo esc_attr($color); ?>"
+            style="width:100%;margin-top:6px;"
+        />
+    </p>
+    <p>
+        <label for="skills_cpt_year"><strong>Años de experiencia</strong></label>
+        <input
+            type="number"
+            id="skills_cpt_year"
+            name="skills_cpt_year"
+            value="<?php echo esc_attr($year); ?>"
+            min="0"
+            max="30"
             style="width:100%;margin-top:6px;"
         />
     </p>
@@ -143,6 +158,12 @@ function skills_cpt_save_meta_box($post_id)
             update_post_meta($post_id, SKILLS_CPT_META_COLOR, $color);
         }
     }
+
+    // Guardar Años de experiencia
+    if (isset($_POST['skills_cpt_year'])) {
+        $year = min(30, max(0, (int) $_POST['skills_cpt_year']));
+        update_post_meta($post_id, SKILLS_CPT_META_YEAR, $year);
+    }
 }
 add_action('save_post', 'skills_cpt_save_meta_box');
 
@@ -172,6 +193,18 @@ function skills_cpt_register_rest_fields()
                 return $val !== '' ? $val : '#2563eb';
             },
             'schema' => array('type' => 'string'),
+        )
+    );
+
+    register_rest_field(
+        'skill',
+        'year',
+        array(
+            'get_callback' => function ($post_arr) {
+                $val = get_post_meta($post_arr['id'], SKILLS_CPT_META_YEAR, true);
+                return $val !== '' ? (int) $val : 0;
+            },
+            'schema' => array('type' => 'integer'),
         )
     );
 }
@@ -206,6 +239,18 @@ function skills_cpt_register_graphql_fields()
             'resolve' => function ($post) {
                 $val = get_post_meta($post->ID, SKILLS_CPT_META_COLOR, true);
                 return $val !== '' ? $val : '#2563eb';
+            },
+        )
+    );
+
+    register_graphql_field(
+        'Skill',
+        'year',
+        array(
+            'type'    => 'Int',
+            'resolve' => function ($post) {
+                $val = get_post_meta($post->ID, SKILLS_CPT_META_YEAR, true);
+                return $val !== '' ? (int) $val : 0;
             },
         )
     );

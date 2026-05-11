@@ -29,15 +29,18 @@ Plugin de WordPress para registrar y gestionar el Custom Post Type de habilidade
 
 - `_skill_level`: Nivel del 0 al 100.
 - `_skill_color`: Color hexadecimal de la marca/habilidad.
+- `_skill_year`: Años de experiencia (0-30).
 
 ## REST API
 
 Sobre el tipo `skill`:
 - `level`
 - `color`
+- `year`
 
 ## WPGraphQL
 
 Sobre el tipo `Skill`:
 - `level`
 - `color`
+- `year`
